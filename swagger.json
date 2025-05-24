@@ -1,0 +1,472 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AI Schoolmate Backend API",
+    "description": "API для умного школьного помощника AI Schoolmate, включающий управление данными учеников, оценками, событиями, а также AI-функционал для рекомендаций и прогнозирования.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Локальный сервер разработки"
+    },
+    {
+      "url": "https://your-production-url.com/api",
+      "description": "Продакшн сервер"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Students",
+      "description": "Управление данными учеников"
+    },
+    {
+      "name": "Grades",
+      "description": "Управление оценками и аналитика успеваемости"
+    },
+    {
+      "name": "Events",
+      "description": "Управление школьными событиями и олимпиадами"
+    },
+    {
+      "name": "Secret Santa",
+      "description": "Функционал для игры 'Тайный Санта'"
+    },
+    {
+      "name": "ENT",
+      "description": "Ввод результатов ЕНТ и прогнозирование"
+    },
+    {
+      "name": "Charts",
+      "description": "Получение данных для построения графиков успеваемости"
+    },
+    {
+      "name": "Recommendations",
+      "description": "Получение AI-советов и персонализированных рекомендаций"
+    },
+    {
+      "name": "OpenAI",
+      "description": "Прямое взаимодействие с OpenAI API для общих запросов"
+    },
+    {
+      "name": "Agent",
+      "description": "Высокоуровневый AI-агент для комплексных запросов"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Простой токен авторизации для MVP (для реальной аутентификации используйте JWT, OAuth и т.д.)"
+      }
+    },
+    "schemas": {
+      "Student": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "readOnly": true },
+          "name": { "type": "string", "example": "Иванов Иван" },
+          "class": { "type": "string", "example": "10 'А'" },
+          "email": { "type": "string", "format": "email", "example": "ivanov@school.com" },
+          "created_at": { "type": "string", "format": "date-time", "readOnly": true }
+        },
+        "required": ["name", "class"]
+      },
+      "Grade": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "readOnly": true },
+          "student_id": { "type": "string", "format": "uuid", "example": "some-student-uuid" },
+          "subject": { "type": "string", "example": "Математика" },
+          "topic": { "type": "string", "example": "Алгебраические выражения" },
+          "score": { "type": "integer", "example": 85, "minimum": 0, "maximum": 100 },
+          "grade_date": { "type": "string", "format": "date", "example": "2024-03-15" },
+          "created_at": { "type": "string", "format": "date-time", "readOnly": true }
+        },
+        "required": ["student_id", "subject", "topic", "score", "grade_date"]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "readOnly": true },
+          "title": { "type": "string", "example": "Олимпиада по физике" },
+          "description": { "type": "string", "example": "Школьный этап олимпиады для 9-11 классов." },
+          "event_date": { "type": "string", "format": "date", "example": "2024-04-20" },
+          "type": { "type": "string", "example": "Olympiad", "enum": ["Olympiad", "Competition", "School Event", "Other"] },
+          "location": { "type": "string", "example": "Кабинет 305" },
+          "invitation_link": { "type": "string", "format": "url", "example": "https://school.kz/olympiad/physics" },
+          "created_at": { "type": "string", "format": "date-time", "readOnly": true }
+        },
+        "required": ["title", "event_date", "type"]
+      },
+      "ENTResult": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "readOnly": true },
+          "student_id": { "type": "string", "format": "uuid", "example": "some-student-uuid" },
+          "math_score": { "type": "integer", "example": 25, "minimum": 0, "maximum": 30 },
+          "physics_score": { "type": "integer", "example": 20, "minimum": 0, "maximum": 30 },
+          "total_score": { "type": "integer", "example": 100, "minimum": 0, "maximum": 140 },
+          "test_date": { "type": "string", "format": "date", "example": "2024-03-01" },
+          "predicted_score": { "type": "integer", "example": 115, "minimum": 0, "maximum": 140 },
+          "created_at": { "type": "string", "format": "date-time", "readOnly": true }
+        },
+        "required": ["student_id", "total_score", "test_date"]
+      },
+      "Recommendation": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "example": "grade_improvement" },
+          "subject": { "type": "string", "example": "Математика" },
+          "topic": { "type": "string", "example": "Тригонометрия" },
+          "advice": { "type": "string", "example": "Сосредоточьтесь на понимании единичной окружности и основных тригонометрических тождеств. Практикуйтесь в решении уравнений." },
+          "visual_suggestion": { "type": "string", "example": "Представьте диаграмму единичной окружности с ключевыми углами." }
+        }
+      },
+      "ChartData": {
+        "type": "object",
+        "properties": {
+          "labels": { "type": "array", "items": { "type": "string" }, "example": ["Янв", "Фев", "Мар"] },
+          "datasets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string", "example": "Средний балл по Математике" },
+                "data": { "type": "array", "items": { "type": "number" }, "example": [75, 80, 82] }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/students": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "Получить список всех учеников",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Список учеников", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Student" } } } } }
+        }
+      },
+      "post": {
+        "tags": ["Students"],
+        "summary": "Добавить нового ученика",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Student" } } } },
+        "responses": {
+          "201": { "description": "Ученик успешно создан", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Student" } } } }
+        }
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "Получить информацию об ученике по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Информация об ученике", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Student" } } } },
+          "404": { "description": "Ученик не найден" }
+        }
+      },
+      "put": {
+        "tags": ["Students"],
+        "summary": "Обновить информацию об ученике по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Student" } } } },
+        "responses": {
+          "200": { "description": "Ученик успешно обновлен", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Student" } } } },
+          "404": { "description": "Ученик не найден" }
+        }
+      },
+      "delete": {
+        "tags": ["Students"],
+        "summary": "Удалить ученика по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "204": { "description": "Ученик успешно удален" },
+          "404": { "description": "Ученик не найден" }
+        }
+      }
+    },
+    "/students/{id}/grades": {
+      "get": {
+        "tags": ["Grades"],
+        "summary": "Получить все оценки для конкретного ученика",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Список оценок", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Grade" } } } } },
+          "404": { "description": "Ученик не найден" }
+        }
+      }
+    },
+    "/grades": {
+      "get": {
+        "tags": ["Grades"],
+        "summary": "Получить список всех оценок (для всех учеников)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Список всех оценок", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Grade" } } } } }
+        }
+      },
+      "post": {
+        "tags": ["Grades"],
+        "summary": "Добавить новую оценку",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Grade" } } } },
+        "responses": {
+          "201": { "description": "Оценка успешно добавлена", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Grade" } } } }
+        }
+      }
+    },
+    "/grades/{id}": {
+      "get": {
+        "tags": ["Grades"],
+        "summary": "Получить оценку по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Информация об оценке", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Grade" } } } },
+          "404": { "description": "Оценка не найдена" }
+        }
+      },
+      "put": {
+        "tags": ["Grades"],
+        "summary": "Обновить оценку по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Grade" } } } },
+        "responses": {
+          "200": { "description": "Оценка успешно обновлена", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Grade" } } } },
+          "404": { "description": "Оценка не найдена" }
+        }
+      },
+      "delete": {
+        "tags": ["Grades"],
+        "summary": "Удалить оценку по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "204": { "description": "Оценка успешно удалена" },
+          "404": { "description": "Оценка не найдена" }
+        }
+      }
+    },
+    "/grades/analytics/student/{studentId}": {
+      "get": {
+        "tags": ["Grades"],
+        "summary": "Получить аналитику успеваемости для ученика (средний балл, динамика)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "studentId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Аналитические данные", "content": { "application/json": { "example": { "averageScore": 85.5, "subjectsAverage": { "Математика": 88, "Физика": 82 } } } } }
+        }
+      }
+    },
+    "/grades/comparison/class/{className}": {
+      "get": {
+        "tags": ["Grades"],
+        "summary": "Сравнить успеваемость учеников в классе",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "className", "in": "path", "required": true, "schema": { "type": "string", "example": "10 'А'" } }],
+        "responses": {
+          "200": { "description": "Данные для сравнения", "content": { "application/json": { "example": { "studentA": { "average": 85 }, "studentB": { "average": 78 } } } } }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Получить список всех событий/олимпиад",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Список событий", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Event" } } } } }
+        }
+      },
+      "post": {
+        "tags": ["Events"],
+        "summary": "Добавить новое событие/олимпиаду",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Event" } } } },
+        "responses": {
+          "201": { "description": "Событие успешно создано", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Event" } } } }
+        }
+      }
+    },
+    "/events/{id}": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Получить событие по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Информация о событии", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Event" } } } },
+          "404": { "description": "Событие не найдено" }
+        }
+      },
+      "put": {
+        "tags": ["Events"],
+        "summary": "Обновить событие по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Event" } } } },
+        "responses": {
+          "200": { "description": "Событие успешно обновлено", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Event" } } } },
+          "404": { "description": "Событие не найдено" }
+        }
+      },
+      "delete": {
+        "tags": ["Events"],
+        "summary": "Удалить событие по ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "204": { "description": "Событие успешно удалено" },
+          "404": { "description": "Событие не найдено" }
+        }
+      }
+    },
+    "/secret-santa/generate": {
+      "post": {
+        "tags": ["Secret Santa"],
+        "summary": "Сгенерировать пары для Тайного Санты",
+        "description": "Принимает список ID учеников и генерирует уникальные пары 'даритель -> получатель'.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "studentIds": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "uuid" },
+                    "example": ["uuid1", "uuid2", "uuid3"]
+                  }
+                },
+                "required": ["studentIds"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Сгенерированные пары", "content": { "application/json": { "example": { "pairs": [{ "giver": "uuid1", "receiver": "uuid2" }] } } } },
+          "400": { "description": "Недостаточно учеников или ошибка генерации" }
+        }
+      }
+    },
+    "/ent": {
+      "post": {
+        "tags": ["ENT"],
+        "summary": "Записать результаты пробного ЕНТ",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ENTResult" } } } },
+        "responses": {
+          "201": { "description": "Результат ЕНТ записан", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ENTResult" } } } }
+        }
+      },
+      "get": {
+        "tags": ["ENT"],
+        "summary": "Получить все результаты ЕНТ",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Список результатов ЕНТ", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/ENTResult" } } } } }
+        }
+      }
+    },
+    "/ent/student/{studentId}/latest": {
+      "get": {
+        "tags": ["ENT"],
+        "summary": "Получить последний результат ЕНТ и прогноз для ученика",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "studentId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Последний результат ЕНТ и прогноз", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ENTResult" } } } },
+          "404": { "description": "Результаты для ученика не найдены" }
+        }
+      }
+    },
+    "/charts/grades/student/{studentId}": {
+      "get": {
+        "tags": ["Charts"],
+        "summary": "Получить данные для графика успеваемости по предметам для ученика",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "studentId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Данные для графика", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ChartData" } } } }
+        }
+      }
+    },
+    "/recommendations/student/{studentId}": {
+      "get": {
+        "tags": ["Recommendations"],
+        "summary": "Получить AI-советы по слабым темам для ученика",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "studentId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Список рекомендаций", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Recommendation" } } } } },
+          "404": { "description": "Ученик или данные об оценках не найдены" }
+        }
+      }
+    },
+    "/openai/chat": {
+      "post": {
+        "tags": ["OpenAI"],
+        "summary": "Отправить запрос к OpenAI API и получить ответ",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": { "type": "string", "example": "Расскажи мне о Солнечной системе." }
+                },
+                "required": ["prompt"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Ответ от OpenAI", "content": { "application/json": { "example": { "response": "Солнечная система - это планетная система, включающая..." } } } }
+        }
+      }
+    },
+    "/agent/ask": {
+      "post": {
+        "tags": ["Agent"],
+        "summary": "Задать комплексный вопрос AI-агенту",
+        "description": "Агент использует AI для интерпретации запроса и обращения к соответствующим внутренним сервисам для получения ответа.",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string", "example": "Как я могу улучшить свои оценки по математике, и какие олимпиады есть по физике?" },
+                  "studentId": { "type": "string", "format": "uuid", "example": "some-student-uuid", "description": "Необязательно, если запрос не специфичен для ученика." }
+                },
+                "required": ["query"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Ответ от AI-агента", "content": { "application/json": { "example": { "message": "Я проанализировал ваши оценки по математике и нашел следующие рекомендации... Также есть предстоящая олимпиада по физике..." } } } }
+        }
+      }
+    }
+  }
+}

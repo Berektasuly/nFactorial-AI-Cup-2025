@@ -1,0 +1,116 @@
+{
+  "info": {
+    "_postman_id": "YOUR_UNIQUE_POSTMAN_COLLECTION_ID",
+    "name": "AI Schoolmate Backend MVP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_AUTH_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/students",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "students"]
+            }
+          }
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_AUTH_TOKEN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Алишер Смаилов\",\n    \"class\": \"11 'Б'\",\n    \"email\": \"alisher.s@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/students",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "students"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grades",
+      "item": [
+        {
+          "name": "Get Student Grades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_AUTH_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/api/grades/analytics/student/STUDENT_ID",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "grades", "analytics", "student", "STUDENT_ID"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Agent",
+      "item": [
+        {
+          "name": "Ask AI Agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_AUTH_TOKEN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"query\": \"Как я могу улучшить свои оценки по математике, и есть ли олимпиады по физике?\",\n    \"studentId\": \"STUDENT_ID_IF_APPLICABLE\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/agent/ask",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "agent", "ask"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
